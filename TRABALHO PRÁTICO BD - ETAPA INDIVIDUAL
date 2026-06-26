@@ -1,0 +1,620 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "collapsed_sections": [
+        "aUnXSFA9urpu"
+      ],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/rafaelSilveiraSilva/bd/blob/main/TRABALHO%20PR%C3%81TICO%20BD%20-%20ETAPA%20INDIVIDUAL\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Primeira parte do Trabalho Prático de BD2\n",
+        "\n",
+        "> REFERÊNCIA PRINCIPAL (material em construção): https://docs.google.com/presentation/d/1iIXPOhn2TSm5y5Rf5hiI46GTef1E2gKi/edit?usp=sharing&ouid=105327427325994478755&rtpof=true&sd=true\n",
+        "\n",
+        "\n",
+        "Vamos juntar o que vocês já enviaram de PI3 com a atividade de revisão que fizemos algumas aulas atrás (link a seguir) <br>\n",
+        "https://docs.google.com/document/d/1bXAUHBfzFwRp2Rsxn4-Afhm_yPm3Pz1DhQtp_CZz-JQ\n",
+        "\n",
+        "Crie um novo script do Google Colab, e comece definindo as funções de execução de queries que vimos nas últimas aulas. <br>\n",
+        "↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓\n"
+      ],
+      "metadata": {
+        "id": "JUt2lU0uul4m"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import sqlite3\n",
+        "from sqlite3 import Error\n",
+        "\n",
+        "## Função de alteração (insert, update, delete...)\n",
+        "def execute_query(connection, query):\n",
+        "    cursor = connection.cursor()\n",
+        "    try:\n",
+        "        cursor.execute(query)\n",
+        "        connection.commit()\n",
+        "        print(f\"Query {query.split('(')[0].strip()} executada.\")\n",
+        "        if cursor.rowcount != -1: print(f\"{cursor.rowcount} linha(s) afetadas\")\n",
+        "\n",
+        "    except Error as e:\n",
+        "        print(f\"Erro: '{e}'\")\n",
+        "\n",
+        "\n",
+        "# Função de leitura de dados (select)\n",
+        "def execute_read_query(connection, query):\n",
+        "    cursor = connection.cursor()\n",
+        "    result = None\n",
+        "    try:\n",
+        "        cursor.execute(query)\n",
+        "        result = cursor.fetchall()\n",
+        "\n",
+        "        return result\n",
+        "    except Error as e:\n",
+        "        print(f\"Erro: '{e}'\")"
+      ],
+      "metadata": {
+        "id": "DxUjW7ZjmKoa"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Suas tabelas de PI3\n",
+        "\n",
+        "Abra a célula de código que corresponde à sua equipe de PI3, nela estará o SQL de criação de tabelas que foi enviado por vocês em atividades anteriores. Copie o código de execução para o seu script.\n"
+      ],
+      "metadata": {
+        "id": "aUnXSFA9urpu"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "connection = sqlite3.connect(\"financas.sqlite\")\n",
+        "\n",
+        "query = \"\"\"\n",
+        "create table usuario(\n",
+        "\tid_usuario integer primary key autoincrement,\n",
+        "  nome varchar(100),\n",
+        "  email varchar(100),\n",
+        "  celular char(15),\n",
+        "  senha varchar(100)\n",
+        ");\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n",
+        "query = \"\"\"\n",
+        "create table card(\n",
+        "\tid_card integer primary key autoincrement,\n",
+        "  descricao text,\n",
+        "  resumo varchar (140),\n",
+        "  titulo varchar(100)\n",
+        ");\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n",
+        "query = \"\"\"\n",
+        "create table avaliacao(\n",
+        "\tid_avaliacao integer primary key autoincrement,\n",
+        "  nota float,\n",
+        "  comentario varchar(140),\n",
+        "  dataAvaliacao date\n",
+        ");\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n",
+        "query = \"\"\"\n",
+        "create table vocabulario(\n",
+        "\tid_vocabulario integer primary key autoincrement,\n",
+        "  tituloVocabulario varchar(140)\n",
+        ");\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n",
+        "# -- Relacionamento\n",
+        "query = \"\"\"\n",
+        "create table avaliar (\n",
+        "    id_usuario integer,\n",
+        "    id_avaliacao integer,\n",
+        "    primary key (id_usuario, id_avaliacao),\n",
+        "    foreign key (id_usuario) references Usuario(id_usuario),\n",
+        "    foreign key (id_avaliacao) references Avaliacao(id_avaliacao)\n",
+        ");\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n",
+        "query = \"\"\"\n",
+        "create table visualizar (\n",
+        "    id_usuario integer,\n",
+        "    id_vocabulario integer,\n",
+        "    primary key (id_usuario, id_vocabulario),\n",
+        "    foreign key (id_usuario) references Usuario(id_usuario),\n",
+        "    foreign key (id_vocabulario) references Vocabulario(id_vocabulario)\n",
+        ");\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n",
+        "query = \"\"\"\n",
+        "create table favoritar (\n",
+        "    id_usuario integer,\n",
+        "    id_card integer,\n",
+        "    primary key (id_usuario, id_card),\n",
+        "    foreign key (id_usuario) references Usuario(id_usuario),\n",
+        "    foreign key (id_card) references Card(id_card)\n",
+        ");\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "96Wa_TtPseGK",
+        "outputId": "777d6584-b980-483a-edb2-0619eb466e00"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Query create table usuario executada.\n",
+            "Query create table card executada.\n",
+            "Query create table avaliacao executada.\n",
+            "Query create table vocabulario executada.\n",
+            "Query create table avaliar executada.\n",
+            "Query create table visualizar executada.\n",
+            "Query create table favoritar executada.\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# Atividades\n",
+        "\n",
+        "Para cada atividade a seguir, copie para o seu script as células de texto e de código indicadas, e altere o que for pedido na questão.\n",
+        "\n",
+        "Você pode acessar o material de apoio para relemebrar os conceitos de consultas com SQL: <br>\n",
+        "https://docs.google.com/presentation/d/1iIXPOhn2TSm5y5Rf5hiI46GTef1E2gKi"
+      ],
+      "metadata": {
+        "id": "PnBrJmTmwOp0"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Atividade 01\n",
+        "Crie duas consultas relevantes para sua aplicação em PI3 que tenham, pelo menos, uma função de agregação em cada. Para cada consulta, descreva a ação esperada (ex.: contar participantes em um evento) e justifique o contexto na aplicação de PI3 (ex.: funcionalidade do back-end para checar se já atingiu o limite de vagas do evento).\n"
+      ],
+      "metadata": {
+        "id": "SKMrDb_QwdUH"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**-- EDITE ESSA CÉLULA --**\n",
+        "\n",
+        "**CONSULTA 1**\n",
+        "\n",
+        "* **Objetivo da consulta (contexto de PI3): ESSA CONSULTA TEM O OBJETIVO DE CONTAR O NÚMERO DE USUÁRIOS CADASTRADOS NO SISTEMA, PARA QUE POSSAMOS REGISTRAR (MENSALMENTE) O NÚMERO DE NOVOS USUÁRIOS NA PLATAFORMA\n",
+        "\n",
+        "* **Descrição da ação esperada ao rodar a consulta: É esperado que ao realizar a consulta, o banco pegue da tabela \"usuario\" e conte o número de usuários cadastrados através do id, retornando isso no select.\n"
+      ],
+      "metadata": {
+        "id": "f03Jd780wpd-"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "fKzqSpzn_Riv"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "## ESCREVA AQUI O SELECT 1\n",
+        "\n",
+        "query = \"\"\"\n",
+        "SELECT count(u.id_usuario)\n",
+        "FROM usuario u\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n",
+        "\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "n8ISZ5g0wOKJ"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**-- EDITE ESSA CÉLULA --**\n",
+        "\n",
+        "**CONSULTA 2**\n",
+        "\n",
+        "* **Objetivo da consulta (contexto de PI3): O objetivo da consulta é ordenar do maior para o menor valor de transação esporádica com a finalidade de direcionar os dados para montar o gráfico posteriormente.\n",
+        "\n",
+        "* **Descrição da ação esperada ao rodar a consulta: Espera-se que o from pegue o valor da Transacao Esporádica e ordene pelo Order By de forma decrescente e mostre o valor e o nome."
+      ],
+      "metadata": {
+        "id": "lzh07KY_xDSB"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "## ESCREVA AQUI A CONSULTA 2\n",
+        "\n",
+        "query = \"\"\"\n",
+        "SELECT te.nome, te.valor\n",
+        "FROM TransacaoEsporadica te\n",
+        "ORDER BY te.valor DESC;\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)"
+      ],
+      "metadata": {
+        "id": "tcbAYU9_xFiK"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Atividade 02\n",
+        "\n",
+        "Crie uma consulta relevante para sua aplicação em PI3 que envolva três entidades distintas. Descreva a ação esperada e justifique o contexto na aplicação de PI3."
+      ],
+      "metadata": {
+        "id": "o6LSKtCBwjXx"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**-- EDITE ESSA CÉLULA --**\n",
+        "\n",
+        "**CONSULTA COM 3 ENTIDADES**\n",
+        "\n",
+        "* **Objetivo da consulta (contexto de PI3): Retornar o nome dos usuários que tiveram transações esporádicas em determinada categoria de forma decrescente pelo valor da transação e o seu tipo.\n",
+        "\n",
+        "* **Descrição da ação esperada ao rodar a consulta: Ao rodar a consulta esperamos receber um select que contenha o nome do usuário, a categoria a qual a operação financeira foi realizada, o valor da transação e o seu tipo (receita ou despesa) e ordenar pelo Order by usando o DESC."
+      ],
+      "metadata": {
+        "id": "V5Zkigy5xN-k"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "## ESCREVA AQUI A CONSULTA COM 3 ENTIDADES\n",
+        "query = \"\"\"\n",
+        "SELECT u.nome, c.nome as Categoria , te.valor, te.tipo\n",
+        "FROM TransacaoEsporadica te join categoria c on te.categoria_id = c.id join usuario u on te.usuario_id= u.id\n",
+        "ORDER BY te.valor DESC;\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "U1vfiMkmwk2a"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Atividade 03\n",
+        "\n",
+        "Crie uma view relevante para sua aplicação em PI3. Descreva a ação esperada na consulta dentro de sua view e, ao justificar o contexto, informe também por que a ação é tão recorrente no seu PI3 a ponto de precisar de uma view."
+      ],
+      "metadata": {
+        "id": "jgGt6uAHwlNW"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**-- EDITE ESSA CÉLULA --**\n",
+        "\n",
+        "* **Justificativa para que a consulta seja uma View (Contexto de PI3): Tendo em vista que todo mês devemos puxar as transações fixas do usuário para orientar as suas ações financeiras, é vantajoso que tenhamos uma view que agrupe essa consulta.\n",
+        "\n",
+        "* **Descrição da ação esperada ao rodar a consulta: Ao rodar a consulta, esperamos receber um select que contenha o nome do usuário, a categoria a qual a operação financeira foi realizada, o valor da transação e o seu tipo (receita ou despesa) e ordenar pelo Order by usando o DESC."
+      ],
+      "metadata": {
+        "id": "A54zABNgYZLy"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "## ESCREVA ABAIXO A VIEW\n",
+        "\n",
+        "query = \"\"\"\n",
+        "\n",
+        "create view GastosFixosMensais as\n",
+        "SELECT u.nome as nomeUsuario, c.nome as Categoria , tc.valor, tc.tipo\n",
+        "FROM TransacaoRecorrente tc join categoria c on tc.categoria_id = c.id join usuario u on tc.usuario_id= u.id\n",
+        "ORDER BY tc.valor DESC;\n",
+        "\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n",
+        "\n",
+        "## ESCREVA ABAIXO O SELECT QUE RETORNA TODOS OS ELEMENTOS DA VIEW\n",
+        "\n",
+        "query = \"\"\"\n",
+        "select *\n",
+        "from GastosFixosMensais\n",
+        "\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "SmJjzLmMwmDU"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Atividade 04\n",
+        "\n",
+        "Crie um procedure relevante para sua aplicação em PI3. Descreva a ação esperada ao executar a procedure e, ao justificar o contexto, explique por que essa ação é tão recorrente no seu PI3 a ponto de precisar de uma procedure."
+      ],
+      "metadata": {
+        "id": "ck-OOKFqX3jr"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**-- EDITE ESSA CÉLULA --**\n",
+        "\n",
+        "* **Justificativa para que a operação seja um Procedure (Contexto de PI3): É interessante que a consulta abaixo seja uma procedure pois precisamos fazer uma busca com base em um filtro que pode variar de acordo com o tipo de categoria que iremos buscar.\n",
+        "\n",
+        "* **Descrição da ação esperada ao executar o procedure: Espera-se que o varchar informado entre na procedure e assuma o papel de p_categoria para que consigamos o filtro de comparação variável."
+      ],
+      "metadata": {
+        "id": "pKbkLO5rY_4O"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "## ESCREVA ABAIXO O PROCEDURE\n",
+        "\n",
+        "query = \"\"\"\n",
+        "\n",
+        "DELIMITER $$\n",
+        "create procedure GastosFixosPorCategoria(p_categoria varchar(15))\n",
+        "begin\n",
+        "\n",
+        "\n",
+        "\t\tSELECT u.nome, c.nome as Categoria , tc.valor, tc.tipo\n",
+        "\t\tFROM TransacaoRecorrente tc join categoria c on tc.categoria_id = c.id join usuario u on tc.usuario_id= u.id\n",
+        "\t\tWHERE c.nome = p_categoria;\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "end $$\n",
+        "DELIMITER ;\n",
+        "\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n",
+        "## ESCREVA ABAIXO UMA EXECUÇÃO DA PROCEDURE\n",
+        "\n",
+        "##faço um select de categoria só para que consigamos saber as categorias existentes\n",
+        "\n",
+        "query = \"\"\"\n",
+        "\n",
+        "select c.nome\n",
+        "from categoria c;\n",
+        "\n",
+        "\n",
+        "call GastosFixosPorCategoria(\"Lazer\");\n",
+        "\n",
+        "\"\"\"\n",
+        "\n",
+        "execute_query(connection, query)"
+      ],
+      "metadata": {
+        "id": "AWUB8s8lX32j"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Atividade 05\n",
+        "\n",
+        "Crie uma function relevante para sua aplicação em PI3.\n",
+        "Descreva o valor esperado como retorno ao executar a function e, ao justificar o contexto, explique por que é importante ter essa lógica encapsulada para uso recorrente no seu PI3."
+      ],
+      "metadata": {
+        "id": "pG51BlDpYCEk"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "zyI1uCmXXHlw"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**-- EDITE ESSA CÉLULA --**\n",
+        "\n",
+        "* **Justificativa para que a operação seja uma Function (Contexto de PI3): Crio uma view para pegar o maior valor e uso uma function para executar um bloco de código e retornar um valor.\n",
+        "* **Descrição da operação realizada e valor retornado pela Function: Eu rodo a function que pega o maior valor da view que depois faz um if para verificar se ele é maior ou menor que 100."
+      ],
+      "metadata": {
+        "id": "ML5cKIBjZIpm"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "## ESCREVA ABAIXO A FUNCTION\n",
+        "\n",
+        "query = \"\"\"\n",
+        "create view MaiorMensal as\n",
+        "SELECT max(tc.valor) as maiorValor\n",
+        "FROM TransacaoRecorrente tc ;\n",
+        "\n",
+        "delimiter $$\n",
+        "create function RetornaMaior() returns varchar(120) deterministic\n",
+        "begin\n",
+        "\tdeclare v_maiorValor decimal(10,2);\n",
+        "\n",
+        "\tSELECT maiorValor INTO v_maiorValor FROM MaiorMensal;\n",
+        "\n",
+        "    if v_maiorValor > 100 then\n",
+        "\t\treturn \"O maior valor das transações recorrentes é maior que 100\";\n",
+        "\telse\n",
+        "\t\treturn \"O maior valor das transações recorrentes é menor que 100\";\n",
+        "\n",
+        "\tend if;\n",
+        "\n",
+        "end $$\n",
+        "delimiter ;\n",
+        "\n",
+        "\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)\n",
+        "\n",
+        "## ESCREVA ABAIXO UMA CONSULTA QUE INCLUI A FUNCTION\n",
+        "\n",
+        "query = \"\"\"\n",
+        "select RetornaMaior();\n",
+        "\"\"\"\n",
+        "execute_query(connection, query)"
+      ],
+      "metadata": {
+        "id": "n_iddDu3YC4p"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Atividade 06\n",
+        "\n",
+        "Crie um trigger relevante para sua aplicação em PI3.\n",
+        "Descreva o evento que aciona o trigger e, ao justificar o contexto, explique por que essa automação é necessária para manter a integridade ou eficiência do seu PI3."
+      ],
+      "metadata": {
+        "id": "T1_XfegLYDQp"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "**-- EDITE ESSA CÉLULA --**\n",
+        "\n",
+        "* **Justificativa para que a operação seja um Trigger (Contexto de PI3): A gente precisa garantir que o saldo do usuário esteja sempre certo e atualizado no sistema do PI3. Se deixasse para o backend fazer isso toda vez, um bug no código ou uma falha na rede poderia salvar a transação, mas esquecer de atualizar o saldo. Usando um Trigger, essa atualização roda direto dentro do próprio banco de dados de forma 100% garantida, sem chance de erro ou de o saldo ficar desatualizado.\n",
+        "* **Descrição do evento que dispara o Trigger e das operações que ele executa: O gatilho é disparado sempre que uma nova linha é inserida na tabela TransacaoRecorrente (AFTER INSERT). Quando isso acontece, o Trigger pega o conta_id e o valor dessa nova transação e roda um UPDATE automático na tabela Conta, somando o valor direto no saldo do usuário."
+      ],
+      "metadata": {
+        "id": "EvW8hZdMZZnN"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "## ESCREVA ABAIXO O TRIGGER\n",
+        "\n",
+        "query = \"\"\"\n",
+        "CREATE TABLE Log_Transacao (\n",
+        "    id INT AUTO_INCREMENT PRIMARY KEY,\n",
+        "    transacao_id INT,\n",
+        "    valor_antigo DECIMAL(10,2),\n",
+        "    valor_novo DECIMAL(10,2),\n",
+        "    usuario_alteracao VARCHAR(50),\n",
+        "    data_alteracao TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n",
+        ");\n",
+        "\n",
+        "DELIMITER $$\n",
+        "\n",
+        "CREATE TRIGGER tg_auditoria_transacao\n",
+        "AFTER UPDATE ON TransacaoRecorrente\n",
+        "FOR EACH ROW\n",
+        "BEGIN\n",
+        "    -- Verifica se o valor realmente foi alterado\n",
+        "    IF OLD.valor <> NEW.valor THEN\n",
+        "        INSERT INTO Log_Transacao (transacao_id, valor_antigo, valor_novo, usuario_alteracao)\n",
+        "        VALUES (OLD.id, OLD.valor, NEW.valor, USER());\n",
+        "    END IF;\n",
+        "END $$\n",
+        "\n",
+        "DELIMITER ;\"\"\"\n",
+        "\n",
+        "\n",
+        "## ESCREVA ABAIXO UM COMANDO SQL QUE DISPARA O TRIGGER\n",
+        "query =\n",
+        "\"\"\"\n",
+        "UPDATE TransacaoRecorrente\n",
+        "SET valor = 150.00\n",
+        "WHERE id = 1;\n",
+        "\n",
+        "\n",
+        "SELECT * FROM Log_Transacao;\"\"\""
+      ],
+      "metadata": {
+        "id": "6l3w10PEYDgb"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
